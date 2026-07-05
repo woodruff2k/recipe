@@ -2,7 +2,7 @@
 # 개발용 공용 이미지: 워크스페이스 전체 의존성을 컨테이너(alpine) 안에 설치.
 # (Prisma 엔진 등 네이티브 바이너리를 호스트 OS와 분리하기 위함)
 # 소스는 docker-compose.dev.yml에서 bind-mount 하고, 실행 명령도 거기서 지정.
-FROM node:20-alpine
+FROM node:22-alpine
 # Prisma 엔진은 Alpine(musl)에서 OpenSSL이 필요하다.
 RUN apk add --no-cache openssl libc6-compat
 RUN corepack enable
