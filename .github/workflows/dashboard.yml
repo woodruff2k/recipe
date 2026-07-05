@@ -1,0 +1,95 @@
+name: Test Dashboard
+
+# main에 병합될 때만 추이 데이터를 쌓는다(PR 단계 코드는 아직 검증 중이라 노이즈가 많음).
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+env:
+  PNPM_VERSION: "9.15.9"
+  NODE_VERSION: "20"
+
+jobs:
+  publish-dashboard:
+    name: Publish test dashboard
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: recipe
+          POSTGRES_PASSWORD: recipe
+          POSTGRES_DB: recipe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U recipe -d recipe"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+    env:
+      DATABASE_URL: postgresql://recipe:recipe@localhost:5432/recipe?schema=public
+      JWT_SECRET: ci-test-secret-not-for-prod
+      CORS_ORIGIN: http://localhost:3000
+      PUBLIC_BASE_URL: http://localhost:4000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./backend exec prisma generate
+      - run: pnpm --filter ./backend exec prisma migrate deploy
+
+      # 실패해도 워크플로를 멈추지 않는다 — 실패 자체가 대시보드에 표시할 데이터다.
+      - name: Run backend tests (json + coverage)
+        continue-on-error: true
+        run: pnpm --filter ./backend exec jest --coverage --json --outputFile=../backend-results.json
+
+      - name: Run frontend tests (json + coverage)
+        continue-on-error: true
+        run: pnpm --filter ./frontend exec jest --coverage --json --outputFile=../frontend-results.json
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start backend (background)
+        run: pnpm --filter ./backend dev &
+      - name: Start frontend (background)
+        run: pnpm --filter ./frontend dev &
+      - name: Wait for backend & frontend to be ready
+        run: |
+          for i in $(seq 1 30); do curl -sf http://localhost:4000/health && break; sleep 2; done
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 > /dev/null && break; sleep 2; done
+
+      - name: Run E2E tests (json)
+        continue-on-error: true
+        run: pnpm exec playwright test --grep-invert "@visual" --reporter=json > e2e-results.json
+
+      - name: Fetch existing dashboard history
+        run: |
+          mkdir -p public/data
+          git fetch origin gh-pages 2>/dev/null \
+            && git show origin/gh-pages:data/history.json > public/data/history.json 2>/dev/null \
+            || echo "[]" > public/data/history.json
+
+      - name: Collect metrics for this run
+        run: node scripts/collect-test-metrics.mjs
+
+      - name: Append to history
+        run: node scripts/append-history.mjs public/data/history.json metrics.json
+
+      - name: Assemble dashboard site
+        run: cp dashboard/index.html dashboard/app.js public/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages

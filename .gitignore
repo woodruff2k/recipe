@@ -24,3 +24,10 @@ backend/uploads/*
 
 # 별도 중첩 git 저장소(스캐폴딩 잔재) — recipe 이력에 포함하지 않음
 starter-template/
+
+# 테스트 대시보드(.github/workflows/dashboard.yml)의 CI 중간 산출물
+/backend-results.json
+/frontend-results.json
+/e2e-results.json
+/metrics.json
+/public/

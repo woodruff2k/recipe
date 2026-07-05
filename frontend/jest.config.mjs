@@ -20,7 +20,7 @@ const config = {
     "!src/app/layout.tsx", // 루트 레이아웃(폰트/Provider) — 컴포넌트 테스트 대상 아님
   ],
   coverageDirectory: "coverage",
-  coverageReporters: ["text", "text-summary", "lcov"],
+  coverageReporters: ["text", "text-summary", "lcov", "json-summary"],
   // coverageThreshold: { global: { statements: 60, branches: 50, functions: 60, lines: 60 } },
 };
 
