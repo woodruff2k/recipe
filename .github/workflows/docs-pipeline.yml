@@ -10,6 +10,7 @@ on:
       - "backend/typedoc.json"
       - "docs/GETTING-STARTED.md"
       - "docs/DEPLOYMENT-GUIDE.md"
+      - "docs/RUNBOOK.md"
       - "docs-site/**"
       - "scripts/render-markdown.mjs"
       - ".github/workflows/docs-pipeline.yml"
@@ -69,6 +70,13 @@ jobs:
             docs/DEPLOYMENT-GUIDE.md \
             site/deployment-guide.html \
             "RecipeShare — Deployment Guide"
+
+      - name: Render Operations Runbook
+        run: |
+          node scripts/render-markdown.mjs \
+            docs/RUNBOOK.md \
+            site/runbook.html \
+            "RecipeShare — Operations Runbook"
 
       - name: Assemble docs site
         run: |
