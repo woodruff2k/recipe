@@ -538,5 +538,55 @@
       }
     },
     "failedTests": []
+  },
+  {
+    "sha": "09ec0cc57a37120b621f421fb0ecf52479572203",
+    "ref": "main",
+    "date": "2026-07-05T17:40:53.561Z",
+    "passRate": 98.92,
+    "totals": {
+      "total": 93,
+      "passed": 92,
+      "failed": 1,
+      "durationMs": 38708.271
+    },
+    "suites": {
+      "backend": {
+        "total": 84,
+        "passed": 84,
+        "failed": 0,
+        "durationMs": 19851,
+        "coverage": {
+          "statements": 99.31,
+          "branches": 95.29,
+          "functions": 98.07,
+          "lines": 99.29
+        }
+      },
+      "frontend": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "durationMs": 2045,
+        "coverage": {
+          "statements": 11.08,
+          "branches": 11.66,
+          "functions": 14.28,
+          "lines": 11.59
+        }
+      },
+      "e2e": {
+        "total": 6,
+        "passed": 5,
+        "failed": 1,
+        "durationMs": 16812.271
+      }
+    },
+    "failedTests": [
+      {
+        "suite": "e2e",
+        "name": "mvp.spec.ts > MVP: 회원가입 → 작성 → 검색 → 수정 → 삭제 → 가드"
+      }
+    ]
   }
 ]
