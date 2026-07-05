@@ -9,6 +9,7 @@ on:
       - "backend/openapi.yaml"
       - "backend/typedoc.json"
       - "docs/GETTING-STARTED.md"
+      - "docs/DEPLOYMENT-GUIDE.md"
       - "docs-site/**"
       - "scripts/render-markdown.mjs"
       - ".github/workflows/docs-pipeline.yml"
@@ -61,6 +62,13 @@ jobs:
             docs/GETTING-STARTED.md \
             site/getting-started.html \
             "RecipeShare — Getting Started"
+
+      - name: Render Deployment Guide
+        run: |
+          node scripts/render-markdown.mjs \
+            docs/DEPLOYMENT-GUIDE.md \
+            site/deployment-guide.html \
+            "RecipeShare — Deployment Guide"
 
       - name: Assemble docs site
         run: |
