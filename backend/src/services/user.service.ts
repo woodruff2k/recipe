@@ -36,8 +36,8 @@ export class UserService {
   constructor(private readonly users: UserRepository = new PrismaUserRepository()) {}
 
   async register(input: RegisterInput): Promise<PublicUser> {
-    const existing = await this.users.findByEmail(input.email);
-    if (existing) {
+    const existingId = await this.users.findIdByEmail(input.email);
+    if (existingId) {
       throw new EmailAlreadyRegisteredError(input.email);
     }
 
@@ -73,8 +73,8 @@ export class UserService {
 
   async update(id: string, data: UpdateUserInput): Promise<PublicUser> {
     if (data.email) {
-      const existing = await this.users.findByEmail(data.email);
-      if (existing && existing.id !== id) {
+      const existingId = await this.users.findIdByEmail(data.email);
+      if (existingId && existingId !== id) {
         throw new EmailAlreadyRegisteredError(data.email);
       }
     }
