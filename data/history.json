@@ -588,5 +588,50 @@
         "name": "mvp.spec.ts > MVP: 회원가입 → 작성 → 검색 → 수정 → 삭제 → 가드"
       }
     ]
+  },
+  {
+    "sha": "d5fdcf5e83b4c605115ec8c9f94c1cac1b3e83f2",
+    "ref": "main",
+    "date": "2026-07-05T17:54:27.064Z",
+    "passRate": 100,
+    "totals": {
+      "total": 93,
+      "passed": 93,
+      "failed": 0,
+      "durationMs": 33161.397
+    },
+    "suites": {
+      "backend": {
+        "total": 84,
+        "passed": 84,
+        "failed": 0,
+        "durationMs": 19807,
+        "coverage": {
+          "statements": 99.31,
+          "branches": 95.29,
+          "functions": 98.07,
+          "lines": 99.29
+        }
+      },
+      "frontend": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "durationMs": 1785,
+        "coverage": {
+          "statements": 11.08,
+          "branches": 11.66,
+          "functions": 14.28,
+          "lines": 11.59
+        }
+      },
+      "e2e": {
+        "total": 6,
+        "passed": 6,
+        "failed": 0,
+        "durationMs": 11569.396999999999
+      }
+    },
+    "failedTests": []
   }
 ]
