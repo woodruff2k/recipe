@@ -120,7 +120,11 @@ export const create = asyncHandler(async (req, res) => {
 });
 
 export const update = asyncHandler(async (req, res) => {
-  const existing = await prisma.recipe.findUnique({ where: { id: req.params.id } });
+  // 소유권 확인엔 authorId만 필요 — 본문 전체(ingredients/steps 등)를 불필요하게 가져오지 않는다.
+  const existing = await prisma.recipe.findUnique({
+    where: { id: req.params.id },
+    select: { authorId: true },
+  });
   if (!existing) {
     throw notFound("Recipe not found");
   }
@@ -144,7 +148,10 @@ export const update = asyncHandler(async (req, res) => {
 });
 
 export const remove = asyncHandler(async (req, res) => {
-  const existing = await prisma.recipe.findUnique({ where: { id: req.params.id } });
+  const existing = await prisma.recipe.findUnique({
+    where: { id: req.params.id },
+    select: { authorId: true },
+  });
   if (!existing) {
     throw notFound("Recipe not found");
   }

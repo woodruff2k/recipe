@@ -35,5 +35,6 @@ model Recipe {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([authorId])
+  @@index([authorId, createdAt])
+  @@index([createdAt])
 }

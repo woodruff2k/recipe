@@ -24,6 +24,8 @@ export interface UpdateUserData {
 export interface UserRepository {
   findByEmail(email: string): Promise<UserRecord | null>;
   findById(id: string): Promise<UserRecord | null>;
+  /** 이메일 존재 여부만 필요한 중복 체크용 — passwordHash 등 나머지 컬럼을 가져오지 않는다. */
+  findIdByEmail(email: string): Promise<string | null>;
   create(input: CreateUserInput): Promise<UserRecord>;
   update(id: string, data: UpdateUserData): Promise<UserRecord>;
 }
@@ -37,6 +39,14 @@ export class PrismaUserRepository implements UserRepository {
 
   findById(id: string): Promise<UserRecord | null> {
     return this.client.user.findUnique({ where: { id } });
+  }
+
+  async findIdByEmail(email: string): Promise<string | null> {
+    const user = await this.client.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    return user?.id ?? null;
   }
 
   create(input: CreateUserInput): Promise<UserRecord> {
