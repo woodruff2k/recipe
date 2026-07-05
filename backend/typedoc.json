@@ -1,0 +1,25 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/routes/auth.ts",
+    "src/routes/recipes.ts",
+    "src/routes/uploads.ts",
+    "src/controllers/auth.controller.ts",
+    "src/controllers/recipe.controller.ts",
+    "src/controllers/upload.controller.ts",
+    "src/services/user.service.ts",
+    "src/services/user.errors.ts",
+    "src/repositories/user.repository.ts",
+    "src/storage/StorageProvider.ts",
+    "src/utils/errors.ts"
+  ],
+  "out": "docs-api",
+  "name": "RecipeShare Backend API Reference",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "githubPages": false,
+  "categorizeByGroup": true,
+  "sort": ["source-order"]
+}
