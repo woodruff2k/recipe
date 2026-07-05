@@ -71,6 +71,8 @@ conflict`를 throw하면 `middlewares/error.ts`가 JSON으로 변환한다. ZodE
   `utils/jwt.ts`.
 - **환경변수는 `config/env.ts` 한 곳에서만 읽는다.** 부팅 시 `JWT_SECRET` 누락이면 즉시 실패
   (fail-fast). `process.env`를 다른 파일에서 직접 읽지 말 것.
+- **API 문서:** `backend/openapi.yaml`이 단일 출처다. 라우트/스키마를 바꾸면 이 파일도 함께
+  갱신할 것. `GET /api-docs`(Swagger UI), `GET /openapi.yaml`(원본)로 확인 가능.
 
 ### 이미지 저장 추상화 (S3 전환 대비)
 
