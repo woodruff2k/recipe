@@ -268,5 +268,50 @@
       }
     },
     "failedTests": []
+  },
+  {
+    "sha": "d40e33dcd2fac5ac6753b1940a0421f60863b5cb",
+    "ref": "main",
+    "date": "2026-07-05T08:53:09.318Z",
+    "passRate": 100,
+    "totals": {
+      "total": 93,
+      "passed": 93,
+      "failed": 0,
+      "durationMs": 33872.487
+    },
+    "suites": {
+      "backend": {
+        "total": 84,
+        "passed": 84,
+        "failed": 0,
+        "durationMs": 19761,
+        "coverage": {
+          "statements": 99.64,
+          "branches": 95.29,
+          "functions": 100,
+          "lines": 99.63
+        }
+      },
+      "frontend": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "durationMs": 1792,
+        "coverage": {
+          "statements": 11.08,
+          "branches": 11.66,
+          "functions": 14.28,
+          "lines": 11.59
+        }
+      },
+      "e2e": {
+        "total": 6,
+        "passed": 6,
+        "failed": 0,
+        "durationMs": 12319.487
+      }
+    },
+    "failedTests": []
   }
 ]
