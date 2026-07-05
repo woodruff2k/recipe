@@ -16,6 +16,13 @@ on:
 permissions:
   contents: write
 
+# dashboard.yml과 같은 gh-pages에 배포한다. 동시에 push하면 GitHub Pages
+# 배포 자체가 "Deployment failed, try again later"로 충돌하는 걸 실제로
+# 겪어서, 같은 concurrency 그룹으로 묶어 순차 실행되게 한다(취소 아님, 대기).
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
 env:
   PNPM_VERSION: "9.15.9"
   NODE_VERSION: "22"
