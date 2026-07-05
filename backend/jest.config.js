@@ -12,7 +12,7 @@ module.exports = {
     "!src/**/*.d.ts",
   ],
   coverageDirectory: "coverage",
-  coverageReporters: ["text", "text-summary", "lcov"],
+  coverageReporters: ["text", "text-summary", "lcov", "json-summary"],
   // 게이트가 필요하면 주석 해제(현재는 샘플 테스트만 있어 비활성):
   // coverageThreshold: {
   //   global: { statements: 70, branches: 60, functions: 70, lines: 70 },

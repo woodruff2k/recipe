@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RecipeShare — 테스트 대시보드</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #0b0f19;
+        color: #e5e7eb;
+      }
+      h1 {
+        font-size: 1.4rem;
+        margin-bottom: 4px;
+      }
+      .updated {
+        color: #9ca3af;
+        font-size: 0.85rem;
+        margin-bottom: 24px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        background: #131826;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 16px;
+      }
+      .card h2 {
+        font-size: 1rem;
+        margin: 0 0 12px;
+        color: #d1d5db;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid #1f2937;
+      }
+      .empty {
+        color: #6b7280;
+        font-style: italic;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+      }
+      .badge.backend {
+        background: #1e3a8a;
+      }
+      .badge.frontend {
+        background: #78350f;
+      }
+      .badge.e2e {
+        background: #581c87;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🍳 RecipeShare — 테스트 대시보드</h1>
+    <div class="updated" id="updated">불러오는 중...</div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>테스트 통과율 추이</h2>
+        <canvas id="passRateChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h2>커버리지 변화 (statements %)</h2>
+        <canvas id="coverageChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h2>테스트 실행 시간 추이</h2>
+        <canvas id="durationChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h2>가장 최근 실행의 실패한 테스트</h2>
+        <div id="failedTests"></div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
