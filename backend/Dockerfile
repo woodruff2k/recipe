@@ -2,7 +2,7 @@
 # NOTE: build context is the MONOREPO ROOT (see docker-compose.yml),
 # because the pnpm lockfile lives at the workspace root.
 
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 # Prisma engine needs OpenSSL on Alpine (musl).
 RUN apk add --no-cache openssl libc6-compat
 RUN corepack enable
