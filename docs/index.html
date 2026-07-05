@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RecipeShare — 문서 허브</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 48px 24px;
+        background: #0b0f19;
+        color: #e5e7eb;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin-bottom: 4px;
+      }
+      .updated {
+        color: #9ca3af;
+        font-size: 0.85rem;
+        margin-bottom: 32px;
+      }
+      .cards {
+        display: grid;
+        gap: 16px;
+      }
+      a.card {
+        display: block;
+        background: #131826;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 20px;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.15s;
+      }
+      a.card:hover {
+        border-color: #3b82f6;
+      }
+      a.card h2 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+        color: #60a5fa;
+      }
+      a.card p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
+      .back-link {
+        display: inline-block;
+        margin-top: 32px;
+        font-size: 0.85rem;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>🍳 RecipeShare — 문서 허브</h1>
+      <div class="updated" id="updated">
+        코드 변경 시 GitHub Actions가 자동으로 재생성합니다 · 마지막 빌드: 2026-07-05T17:53:14Z (d5fdcf5)
+      </div>
+
+      <div class="cards">
+        <a class="card" href="./api/index.html">
+          <h2>API 문서 (OpenAPI/Redoc)</h2>
+          <p>
+            모든 엔드포인트의 요청/응답 스키마, 인증, 에러 응답. backend/openapi.yaml
+            기반.
+          </p>
+        </a>
+        <a class="card" href="./typedoc/index.html">
+          <h2>코드 레퍼런스 (TypeDoc)</h2>
+          <p>백엔드 라우트·컨트롤러·서비스의 실제 타입 시그니처와 JSDoc.</p>
+        </a>
+        <a class="card" href="./getting-started.html">
+          <h2>시작하기 가이드</h2>
+          <p>시스템 요구사항, 설치, 환경설정, 첫 실행, 트러블슈팅.</p>
+        </a>
+      </div>
+
+      <a class="back-link" href="../index.html">&larr; 테스트 대시보드로</a>
+    </main>
+  </body>
+</html>
