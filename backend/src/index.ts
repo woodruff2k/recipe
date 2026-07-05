@@ -11,7 +11,7 @@ async function main() {
     );
   });
 
-  // Graceful shutdown so SQLite/Prisma connections close cleanly.
+  // Graceful shutdown so Prisma/Postgres connections close cleanly.
   const shutdown = async (signal: string) => {
     console.log(`\n${signal} received — shutting down...`);
     server.close(async () => {
