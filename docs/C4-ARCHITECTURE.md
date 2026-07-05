@@ -115,6 +115,51 @@ C4Component
 
 ---
 
+## L3. Component — Frontend
+
+**Frontend 컨테이너** 내부를 확대합니다. App Router 페이지는 대부분 `"use client"` +
+`useEffect`로 데이터를 가져오며([ADR-0006](./adr/0006-client-side-data-fetching.md)
+참고), 인증 상태와 API 호출이 각각 하나의 컴포넌트로 집중되어 있습니다.
+
+```mermaid
+C4Component
+    title Component — Frontend (Next.js)
+
+    Container(api, "Backend API", "Express", "REST API")
+
+    Container_Boundary(spa, "Frontend") {
+        Component(pages, "Pages", "App Router", "홈·로그인·회원가입·프로필·레시피 CRUD 페이지")
+        Component(header, "SiteHeader", "React", "전역 내비게이션, 로그인 상태 표시")
+        Component(ui, "UI Primitives", "shadcn/ui (base-ui)", "Button·Card·Input 등 재사용 컴포넌트")
+        Component(auth, "AuthProvider", "React Context", "로그인 상태 보관, 세션 복원")
+        Component(apic, "API Client", "fetch wrapper", "토큰 주입, ApiError 변환, FormData 처리")
+        Component(store, "tokenStore", "localStorage", "JWT 토큰 저장/조회/삭제")
+    }
+
+    Rel(pages, auth, "useAuth()")
+    Rel(pages, apic, "api.* 호출")
+    Rel(pages, ui, "렌더링")
+    Rel(header, auth, "useAuth() — 사용자명/로그아웃")
+    Rel(auth, apic, "login/register/me 호출")
+    Rel(apic, store, "토큰 읽기/쓰기")
+    Rel(apic, api, "JSON/HTTPS, Bearer")
+```
+
+| 컴포넌트      | 역할                                                                 | 코드 위치                                 |
+| ------------- | -------------------------------------------------------------------- | ----------------------------------------- |
+| Pages         | 라우팅별 화면, 로딩/에러 상태 관리                                   | `frontend/src/app/**/page.tsx`            |
+| SiteHeader    | 전역 내비게이션, 로그인 여부에 따른 메뉴 분기                        | `frontend/src/components/site-header.tsx` |
+| UI Primitives | 버튼·카드·입력 등 디자인 시스템 컴포넌트                             | `frontend/src/components/ui/`             |
+| AuthProvider  | 로그인 상태를 Context로 전역 공유, 최초 마운트 시 토큰으로 세션 복원 | `frontend/src/contexts/auth-context.tsx`  |
+| API Client    | 모든 백엔드 호출의 단일 진입점(토큰 주입·에러 변환)                  | `frontend/src/lib/api.ts`                 |
+| tokenStore    | JWT를 `localStorage`에 저장/조회/삭제                                | `frontend/src/lib/api.ts` (동일 파일 내)  |
+
+> **컴포넌트 경계 규칙**([`CLAUDE.md`](../CLAUDE.md)): 페이지는 절대 `fetch`를 직접
+> 호출하지 않고 반드시 API Client를 거친다. 이 규칙 덕분에 다이어그램의 `Pages → apic`
+> 화살표가 예외 없이 성립한다.
+
+---
+
 ## L4. Code — Storage 컴포넌트
 
 가장 깊은 단계로, **Storage 컴포넌트**의 실제 코드 구조(클래스/인터페이스)를 봅니다.
@@ -162,11 +207,12 @@ classDiagram
 
 ## 요약: 줌 레벨별 매핑
 
-| C4 레벨      | 다이어그램 타입 | 답하는 질문       | 대응 코드                                                     |
-| ------------ | --------------- | ----------------- | ------------------------------------------------------------- |
-| L1 Context   | `C4Context`     | 누가/무엇과 연결? | 시스템 전체                                                   |
-| L2 Container | `C4Container`   | 어떤 실행 단위?   | `frontend/`, `backend/`, `prisma/`, `uploads/`                |
-| L3 Component | `C4Component`   | 백엔드 내부 구성? | `routes/`, `middlewares/`, `controllers/`, `storage/`, `lib/` |
-| L4 Code      | `classDiagram`  | 실제 클래스 구조? | `backend/src/storage/*.ts`                                    |
+| C4 레벨      | 다이어그램 타입 | 답하는 질문           | 대응 코드                                                     |
+| ------------ | --------------- | --------------------- | ------------------------------------------------------------- |
+| L1 Context   | `C4Context`     | 누가/무엇과 연결?     | 시스템 전체                                                   |
+| L2 Container | `C4Container`   | 어떤 실행 단위?       | `frontend/`, `backend/`, `prisma/`, `uploads/`                |
+| L3 Component | `C4Component`   | 백엔드 내부 구성?     | `routes/`, `middlewares/`, `controllers/`, `storage/`, `lib/` |
+| L3 Component | `C4Component`   | 프론트엔드 내부 구성? | `app/`, `components/`, `contexts/`, `lib/api.ts`              |
+| L4 Code      | `classDiagram`  | 실제 클래스 구조?     | `backend/src/storage/*.ts`                                    |
 
 > 시퀀스 다이어그램·ERD·배포도는 [`ARCHITECTURE.md`](./ARCHITECTURE.md), MVP 범위는 [`MVP-SPEC.md`](./MVP-SPEC.md) 참고.
