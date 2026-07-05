@@ -1,0 +1,17 @@
+node_modules
+**/node_modules
+**/dist
+**/.next
+**/prisma/migrations
+**/*.lock
+package-lock.json
+pnpm-lock.yaml
+*.woff
+
+# 테스트 산출물
+**/coverage
+playwright-report
+test-results
+
+# Self-contained template with its own tooling — not part of this workspace.
+starter-template

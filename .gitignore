@@ -1,0 +1,26 @@
+node_modules/
+*.log
+
+# OS / 에디터 산출물
+.DS_Store
+**/.DS_Store
+
+# 빌드 산출물
+.next/
+dist/
+
+# 테스트 산출물
+coverage/
+**/coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+.env
+
+# 로컬 업로드 이미지(개발용 storage/local) — 디렉터리 자체는 유지
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# 별도 중첩 git 저장소(스캐폴딩 잔재) — recipe 이력에 포함하지 않음
+starter-template/

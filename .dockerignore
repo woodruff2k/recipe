@@ -1,0 +1,15 @@
+# Build context is the repo root. Keep images small / builds reproducible.
+**/node_modules
+**/dist
+**/.next
+**/.env
+**/.env.local
+**/*.log
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+backend/uploads/*
+!backend/uploads/.gitkeep
+starter-template
+docs
+.husky
+.git

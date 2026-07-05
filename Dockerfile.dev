@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+# 개발용 공용 이미지: 워크스페이스 전체 의존성을 컨테이너(alpine) 안에 설치.
+# (Prisma 엔진 등 네이티브 바이너리를 호스트 OS와 분리하기 위함)
+# 소스는 docker-compose.dev.yml에서 bind-mount 하고, 실행 명령도 거기서 지정.
+FROM node:20-alpine
+# Prisma 엔진은 Alpine(musl)에서 OpenSSL이 필요하다.
+RUN apk add --no-cache openssl libc6-compat
+RUN corepack enable
+WORKDIR /repo
+
+# 매니페스트만 먼저 복사 → lockfile 변경 시에만 재설치 (레이어 캐시)
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
+COPY backend/package.json ./backend/
+COPY frontend/package.json ./frontend/
+RUN pnpm install
+
+# 기본 명령은 compose의 service.command 가 덮어씀
+CMD ["sh", "-c", "echo 'set a command in docker-compose.dev.yml' && sleep infinity"]

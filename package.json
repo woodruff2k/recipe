@@ -1,0 +1,33 @@
+{
+  "name": "recipe-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RecipeShare monorepo root — pnpm workspace (backend + frontend) + shared tooling.",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r exec tsc --noEmit",
+    "dev:backend": "pnpm --filter ./backend dev",
+    "dev:frontend": "pnpm --filter ./frontend dev",
+    "db:migrate": "pnpm --filter ./backend prisma:migrate",
+    "db:seed": "pnpm --filter ./backend db:seed",
+    "test": "pnpm -r test",
+    "test:cov": "pnpm -r test:cov",
+    "test:e2e": "playwright test --grep-invert \"@visual\"",
+    "test:e2e:ui": "playwright test --ui",
+    "test:visual": "percy exec -- playwright test --grep \"@visual\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "hooks:install": "git config core.hooksPath \"$PWD/.husky\"",
+    "hooks:uninstall": "git config --unset core.hooksPath"
+  },
+  "devDependencies": {
+    "@percy/cli": "^1.30.0",
+    "@percy/playwright": "^1.0.6",
+    "@playwright/test": "^1.48.0",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3"
+  }
+}

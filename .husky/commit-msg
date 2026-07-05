@@ -1,0 +1,30 @@
+#!/bin/sh
+# commit-msg: Conventional Commits 형식 검증 (의존성 없이 셸 정규식).
+#   형식: <type>(<scope>)?(!)?: <subject>
+#   type: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert
+#   예  : feat(backend): 레시피 검색 API 추가
+# 커밋 메시지 파일 경로는 $1 (git이 전달). cd 하지 않음 — 상대경로 유지.
+
+msg_file="$1"
+subject="$(head -n1 "$msg_file")"
+
+# merge / revert / fixup 커밋은 통과
+case "$subject" in
+  "Merge "* | "Revert "* | "fixup!"* | "squash!"*) exit 0 ;;
+esac
+
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9_./-]+\))?!?: .+'
+
+if printf '%s' "$subject" | grep -Eq "$pattern"; then
+  exit 0
+fi
+
+echo "✖ 커밋 메시지가 Conventional Commits 규칙에 맞지 않습니다."
+echo ""
+echo "  형식 : <type>(<scope>)?: <subject>"
+echo "  type : feat | fix | docs | style | refactor | perf | test | build | ci | chore | revert"
+echo "  예시 : feat(backend): 레시피 검색 API 추가"
+echo "         fix: 로그인 401 처리 수정"
+echo ""
+echo "  입력값: $subject"
+exit 1

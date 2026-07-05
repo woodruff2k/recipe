@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "options": {
+    // 모든 태스크는 워크스페이스 루트에서 pnpm으로 실행 (corepack)
+    "cwd": "${workspaceFolder}"
+  },
+  "tasks": [
+    {
+      "label": "install",
+      "type": "shell",
+      "command": "pnpm install",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev (all)",
+      "type": "shell",
+      "command": "pnpm dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": { "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "build (all)",
+      "type": "shell",
+      "command": "pnpm build",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "typecheck",
+      "type": "shell",
+      "command": "pnpm typecheck",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "pnpm lint",
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "format",
+      "type": "shell",
+      "command": "pnpm format",
+      "problemMatcher": []
+    },
+    {
+      "label": "db: migrate",
+      "type": "shell",
+      "command": "pnpm db:migrate",
+      "problemMatcher": []
+    },
+    {
+      "label": "db: seed",
+      "type": "shell",
+      "command": "pnpm db:seed",
+      "problemMatcher": []
+    },
+    {
+      "label": "db: studio (Prisma)",
+      "type": "shell",
+      "command": "pnpm --filter ./backend prisma:studio",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: up (build)",
+      "type": "shell",
+      "command": "docker compose up --build",
+      "problemMatcher": []
+    }
+  ]
+}

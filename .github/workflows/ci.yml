@@ -1,0 +1,239 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: "9.15.9"
+  NODE_VERSION: "20"
+
+jobs:
+  # --- 정적 검사 (lint / typecheck) — 다른 job과 독립적으로 병렬 실행 ---
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Prisma 클라이언트 타입이 없으면 backend 타입체크가 실패한다.
+      - run: pnpm --filter ./backend exec prisma generate
+      - run: pnpm typecheck
+
+  # --- 단위/통합 테스트 (backend / frontend) — 서로 독립적으로 병렬 실행 ---
+  backend-test:
+    name: Backend tests + coverage
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-test-secret-not-for-prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./backend exec prisma generate
+      - name: Run tests with coverage
+        run: pnpm --filter ./backend test:cov | tee backend-coverage.log
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          {
+            echo "## 📊 Backend coverage"
+            echo '```'
+            tail -30 backend-coverage.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage
+          retention-days: 14
+
+  frontend-test:
+    name: Frontend tests + coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run tests with coverage
+        run: pnpm --filter ./frontend test:cov | tee frontend-coverage.log
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          {
+            echo "## 📊 Frontend coverage"
+            echo '```'
+            tail -30 frontend-coverage.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+          retention-days: 14
+
+  # --- E2E (Playwright) — 실제 스택(Postgres+backend+frontend)을 CI 안에서 기동 ---
+  e2e-test:
+    name: E2E tests (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: recipe
+          POSTGRES_PASSWORD: recipe
+          POSTGRES_DB: recipe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U recipe -d recipe"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+    env:
+      DATABASE_URL: postgresql://recipe:recipe@localhost:5432/recipe?schema=public
+      JWT_SECRET: ci-test-secret-not-for-prod
+      CORS_ORIGIN: http://localhost:3000
+      PUBLIC_BASE_URL: http://localhost:4000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./backend exec prisma generate
+      - run: pnpm --filter ./backend exec prisma migrate deploy
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start backend (background)
+        run: pnpm --filter ./backend dev &
+      - name: Start frontend (background)
+        run: pnpm --filter ./frontend dev &
+      - name: Wait for backend & frontend to be ready
+        run: |
+          for i in $(seq 1 30); do curl -sf http://localhost:4000/health && break; sleep 2; done
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 > /dev/null && break; sleep 2; done
+      # 시각 회귀(@visual 태그) 스펙은 별도 visual-test job에서 Percy로 실행한다.
+      - name: Run E2E tests
+        run: pnpm exec playwright test --grep-invert "@visual"
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  # --- 시각 회귀 테스트 (Percy) — PERCY_TOKEN 시크릿이 설정된 경우에만 실행 ---
+  # 계정/토큰 발급은 https://percy.io 가입 후 리포지토리 Settings > Secrets에
+  # PERCY_TOKEN을 등록해야 한다. 미설정 시 이 job은 자동으로 건너뛴다.
+  visual-test:
+    name: Visual regression (Percy)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: recipe
+          POSTGRES_PASSWORD: recipe
+          POSTGRES_DB: recipe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U recipe -d recipe"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+    env:
+      DATABASE_URL: postgresql://recipe:recipe@localhost:5432/recipe?schema=public
+      JWT_SECRET: ci-test-secret-not-for-prod
+      CORS_ORIGIN: http://localhost:3000
+      PUBLIC_BASE_URL: http://localhost:4000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./backend exec prisma generate
+      - run: pnpm --filter ./backend exec prisma migrate deploy
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start backend (background)
+        run: pnpm --filter ./backend dev &
+      - name: Start frontend (background)
+        run: pnpm --filter ./frontend dev &
+      - name: Wait for backend & frontend to be ready
+        run: |
+          for i in $(seq 1 30); do curl -sf http://localhost:4000/health && break; sleep 2; done
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 > /dev/null && break; sleep 2; done
+      - name: Run Percy visual snapshots
+        if: ${{ env.PERCY_TOKEN != '' }}
+        run: pnpm exec percy exec -- playwright test --grep "@visual"
+      - name: Skip notice (no PERCY_TOKEN configured)
+        if: ${{ env.PERCY_TOKEN == '' }}
+        run: echo "PERCY_TOKEN secret이 설정되어 있지 않아 시각 회귀 테스트를 건너뜁니다."
+
+  # --- 병합 차단용 단일 게이트 — 브랜치 보호 규칙에서 이 job 하나만 필수 체크로 지정하면 된다 ---
+  ci-status:
+    name: CI status
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, backend-test, frontend-test, e2e-test]
+    if: always()
+    steps:
+      - name: Fail if any required job failed
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') }}" = "true" ]; then
+            echo "One or more required jobs failed."
+            exit 1
+          fi
+          echo "All required jobs passed."

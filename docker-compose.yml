@@ -1,0 +1,65 @@
+# 프로덕션(예시) 구성. 개발은 docker-compose.dev.yml 사용.
+#   JWT_SECRET="$(openssl rand -hex 32)" docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-recipe}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-recipe}
+      POSTGRES_DB: ${POSTGRES_DB:-recipe}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-recipe} -d ${POSTGRES_DB:-recipe}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [appnet]
+    restart: unless-stopped
+
+  backend:
+    build:
+      # Context = monorepo root so the pnpm workspace lockfile is available.
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      CORS_ORIGIN: http://localhost:3000
+      PUBLIC_BASE_URL: http://localhost:4000
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-recipe}:${POSTGRES_PASSWORD:-recipe}@db:5432/${POSTGRES_DB:-recipe}?schema=public"
+      # Override with a real secret: `JWT_SECRET=... docker compose up`.
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-secret}
+      JWT_EXPIRES_IN: 7d
+      STORAGE_DRIVER: local
+    volumes:
+      - backend_uploads:/repo/backend/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [appnet]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks: [appnet]
+    restart: unless-stopped
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  pgdata:
+  backend_uploads:

@@ -1,0 +1,39 @@
+// Prisma schema — PostgreSQL.
+// Dev: run via docker-compose.dev.yml (postgres service). Local: point
+// DATABASE_URL at a reachable Postgres (e.g. the dev `db` on localhost:5432).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  recipes      Recipe[]
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  // Stored as serialized JSON strings (controller (de)serializes). On Postgres
+  // these could later become Json/text[]; kept as String to avoid app changes.
+  ingredients String   @default("[]") // JSON: string[]
+  steps       String   @default("[]") // JSON: string[]
+  imageUrl    String?
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([authorId])
+}

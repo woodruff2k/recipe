@@ -1,0 +1,9 @@
+packages:
+  - backend
+  - frontend
+
+# Single source of truth for versions shared across packages.
+# Reference in a package with e.g. "typescript": "catalog:".
+catalog:
+  typescript: ^5.5.4
+  "@types/node": ^20.14.0

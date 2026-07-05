@@ -1,0 +1,11 @@
+#!/bin/sh
+# pre-push: 푸시 전 테스트 실행.
+cd "$(dirname "$0")/.." || exit 1
+
+# test 스크립트가 있는 패키지의 테스트 실행. 아직 테스트 프레임워크가
+# 구성돼 있지 않으면(US-6.3 미완) 이 단계는 no-op이 된다.
+pnpm -r --if-present test || exit 1
+
+# 테스트가 갖춰지기 전까지의 품질 게이트로 타입체크를 함께 실행.
+# (테스트 도입 후에는 이 줄을 제거해도 무방)
+pnpm typecheck || exit 1

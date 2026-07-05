@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // backend를 ts-node-dev로 직접 실행하며 디버깅 (브레이크포인트 가능)
+      "name": "Debug backend",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/backend",
+      "program": "${workspaceFolder}/backend/node_modules/.bin/ts-node-dev",
+      "args": ["--respawn", "--transpile-only", "src/index.ts"],
+      "envFile": "${workspaceFolder}/backend/.env",
+      "console": "integratedTerminal",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // Next.js 서버 사이드 (Server Components / route handlers)
+      "name": "Debug frontend (server)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev",
+      "cwd": "${workspaceFolder}/frontend"
+    },
+    {
+      // Next.js 클라이언트 사이드 (브라우저). 먼저 dev 서버가 떠 있어야 함.
+      "name": "Debug frontend (client)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/frontend"
+    }
+  ],
+  "compounds": [
+    {
+      // backend + frontend(server)를 한 번에
+      "name": "Debug full stack",
+      "configurations": ["Debug backend", "Debug frontend (server)"],
+      "stopAll": true
+    }
+  ]
+}

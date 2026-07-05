@@ -1,0 +1,107 @@
+# 개발 환경: Hot reload + Postgres + 볼륨 마운트 + 전용 네트워크
+#   실행:  docker compose -f docker-compose.dev.yml up --build
+#   종료:  docker compose -f docker-compose.dev.yml down       (DB 보존)
+#          docker compose -f docker-compose.dev.yml down -v    (DB까지 삭제)
+name: recipe-dev
+
+services:
+  # --- 데이터베이스 ---
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: recipe
+      POSTGRES_PASSWORD: recipe
+      POSTGRES_DB: recipe
+    ports:
+      # 호스트에 이미 Postgres(5432)가 있을 수 있어 5433으로 공개.
+      # 컨테이너 간 통신은 항상 db:5432 사용(아래 backend 참고).
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recipe -d recipe"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [appnet]
+
+  # --- 백엔드 (Express, ts-node-dev hot reload) ---
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    # 시작 시 Prisma 클라이언트 생성 + 마이그레이션 적용 후 watch 모드 실행.
+    # --poll: 바인드 마운트에서 파일 변경 감지(특히 macOS/Windows).
+    command: >
+      sh -c "pnpm --filter ./backend exec prisma generate &&
+             pnpm --filter ./backend exec prisma migrate deploy &&
+             pnpm --filter ./backend exec ts-node-dev --respawn --transpile-only --poll src/index.ts"
+    environment:
+      NODE_ENV: development
+      PORT: "4000"
+      CORS_ORIGIN: http://localhost:3000
+      PUBLIC_BASE_URL: http://localhost:4000
+      # 컨테이너 간 통신은 서비스명(db)으로 — appnet 네트워크의 DNS
+      DATABASE_URL: postgresql://recipe:recipe@db:5432/recipe?schema=public
+      JWT_SECRET: dev-only-secret-change-me
+      JWT_EXPIRES_IN: 7d
+      STORAGE_DRIVER: local
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./backend:/repo/backend # 소스 bind-mount → hot reload
+      - backend_uploads:/repo/backend/uploads # 업로드 이미지 보존
+      - /repo/backend/node_modules # 컨테이너(alpine) node_modules 보존(호스트 것 가리기)
+    ports:
+      - "4000:4000"
+      - "5555:5555" # Prisma Studio (docker compose exec backend pnpm run prisma:studio:docker)
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [appnet]
+
+  # --- 프론트엔드 (Next.js dev, Fast Refresh) ---
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: sh -c "pnpm --filter ./frontend dev"
+    environment:
+      NODE_ENV: development
+      # 브라우저가 호출하는 주소 → 호스트로 공개된 backend 포트
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      WATCHPACK_POLLING: "true" # 바인드 마운트 hot reload(webpack/Next)
+    volumes:
+      - ./frontend:/repo/frontend # 소스 bind-mount → Fast Refresh
+      - /repo/frontend/node_modules # 컨테이너 node_modules 보존
+      - /repo/frontend/.next # 빌드 캐시는 볼륨에 (바인드와 분리)
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks: [appnet]
+
+  # --- pgAdmin (DB 관리 UI) ---
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      # 개발 전용 계정 — 운영 환경에 그대로 쓰지 말 것.
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [appnet]
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  pgdata:
+  backend_uploads:
+  pgadmin_data:

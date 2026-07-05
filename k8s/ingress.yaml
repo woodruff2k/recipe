@@ -1,0 +1,40 @@
+# 선택 사항: 단일 호스트(recipe.local)로 접근하고 싶을 때.
+# ⚠️ 이 경로를 쓰려면:
+#   1) 프론트엔드를 NEXT_PUBLIC_API_URL=http://recipe.local 로 다시 빌드
+#      docker build -t recipe-frontend:local -f frontend/Dockerfile \
+#        --build-arg NEXT_PUBLIC_API_URL=http://recipe.local .
+#   2) backend-config 의 CORS_ORIGIN 을 http://recipe.local 로 변경
+#   3) /etc/hosts 에 `127.0.0.1 recipe.local` 추가
+#   4) Ingress 컨트롤러 필요(Rancher Desktop=Traefik 내장, 또는 ingress-nginx)
+# 적용: kubectl apply -f k8s/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: recipe
+  namespace: recipe
+spec:
+  rules:
+    - host: recipe.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 4000
+          - path: /uploads
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 4000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000

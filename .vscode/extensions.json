@@ -1,0 +1,14 @@
+{
+  // 이 워크스페이스를 열면 VS Code가 설치를 추천하는 익스텐션 목록.
+  "recommendations": [
+    "dbaeumer.vscode-eslint", // ESLint (backend flat config + frontend next)
+    "esbenp.prettier-vscode", // Prettier (저장 시 포맷)
+    "Prisma.prisma", // schema.prisma 하이라이트/포맷/자동완성
+    "bradlc.vscode-tailwindcss", // Tailwind v4 IntelliSense
+    "ms-azuretools.vscode-docker", // Dockerfile / docker-compose
+    "editorconfig.editorconfig", // .editorconfig 적용
+    "bierner.markdown-mermaid", // docs/*.md 의 mermaid 다이어그램 미리보기
+    "usernamehw.errorlens", // 인라인 에러 표시
+    "yoavbls.pretty-ts-errors" // 읽기 쉬운 TS 에러
+  ]
+}

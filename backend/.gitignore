@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.log
+
+# Env
+.env
+.env.local
+
+# SQLite dev database
+prisma/dev.db
+prisma/dev.db-journal
+*.sqlite
+*.sqlite3
+
+# Local uploaded images (kept out of git; switch to S3 in prod)
+uploads/*
+!uploads/.gitkeep
