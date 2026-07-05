@@ -49,7 +49,7 @@ C4Container
     System_Boundary(sys, "RecipeShare") {
         Container(spa, "Frontend", "Next.js 14 / React 18 / TypeScript", "App Router 웹 UI, shadcn/ui. JWT를 localStorage에 보관")
         Container(api, "Backend API", "Express / TypeScript", "REST API, JWT 인증, 입력 검증(Zod), 이미지 업로드")
-        ContainerDb(db, "Database", "SQLite + Prisma ORM", "사용자/레시피 데이터")
+        ContainerDb(db, "Database", "PostgreSQL + Prisma ORM", "사용자/레시피 데이터")
         Container(fs, "File Storage", "로컬 파일시스템", "업로드 이미지 (/uploads)")
     }
 
@@ -62,12 +62,12 @@ C4Container
     Rel(api, s3, "이미지 저장", "S3 API (예정)")
 ```
 
-| 컨테이너     | 기술          | 책임                         | 코드               |
-| ------------ | ------------- | ---------------------------- | ------------------ |
-| Frontend     | Next.js 14    | UI 렌더링, 라우팅, 토큰 보관 | `frontend/`        |
-| Backend API  | Express       | 인증·CRUD·업로드 REST API    | `backend/`         |
-| Database     | SQLite/Prisma | 영속 데이터                  | `backend/prisma/`  |
-| File Storage | 로컬 FS       | 이미지 바이너리              | `backend/uploads/` |
+| 컨테이너     | 기술              | 책임                         | 코드               |
+| ------------ | ----------------- | ---------------------------- | ------------------ |
+| Frontend     | Next.js 14        | UI 렌더링, 라우팅, 토큰 보관 | `frontend/`        |
+| Backend API  | Express           | 인증·CRUD·업로드 REST API    | `backend/`         |
+| Database     | PostgreSQL/Prisma | 영속 데이터                  | `backend/prisma/`  |
+| File Storage | 로컬 FS           | 이미지 바이너리              | `backend/uploads/` |
 
 ---
 
@@ -91,7 +91,7 @@ C4Component
         Component(prisma, "Prisma Client", "Prisma", "DB 접근 계층")
     }
 
-    ContainerDb(db, "Database", "SQLite", "사용자/레시피")
+    ContainerDb(db, "Database", "PostgreSQL", "사용자/레시피")
     Container(fs, "File Storage", "로컬 FS", "이미지")
 
     Rel(spa, routes, "HTTP 요청", "JSON, Bearer")

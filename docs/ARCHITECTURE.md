@@ -9,7 +9,7 @@
 | -------- | ---------------------------------------------------------------------------------- |
 | Frontend | Next.js 14 (App Router) · React 18 · TypeScript · Tailwind v4 · shadcn/ui(base-ui) |
 | Backend  | Express · TypeScript · Zod(검증)                                                   |
-| Database | SQLite (개발) · Prisma ORM                                                         |
+| Database | PostgreSQL 16 · Prisma ORM                                                         |
 | 인증     | JWT (Bearer) · bcrypt                                                              |
 | 이미지   | 로컬 파일 저장(`/uploads`) · `StorageProvider`로 S3 전환 추상화                    |
 | 배포     | Docker · docker-compose                                                            |
@@ -33,7 +33,7 @@ flowchart LR
         EX["Express App<br/>(app.ts)"]
     end
 
-    DB[("SQLite<br/>Prisma ORM")]
+    DB[("PostgreSQL<br/>Prisma ORM")]
     FS[["로컬 저장소<br/>/uploads"]]
     S3[("AWS S3<br/>전환 예정")]
 
@@ -96,7 +96,7 @@ flowchart TD
     CR --> PRISMA
     CU --> STORE
 
-    PRISMA --> DB[("SQLite")]
+    PRISMA --> DB[("PostgreSQL")]
     STORE --> FS[["/uploads"]]
 
     CA -.->|throw HttpError / ZodError| ERR
@@ -115,7 +115,7 @@ sequenceDiagram
     participant FE as Frontend
     participant R as routes/auth
     participant C as auth.controller
-    participant DB as Prisma / SQLite
+    participant DB as Prisma / PostgreSQL
 
     U->>FE: 이메일 · 비밀번호 입력
     FE->>R: POST /api/auth/login
@@ -166,7 +166,7 @@ sequenceDiagram
     participant ST as StorageProvider
     participant RR as routes/recipes
     participant CR as recipe.controller
-    participant DB as Prisma / SQLite
+    participant DB as Prisma / PostgreSQL
 
     Note over U,ST: 1단계 — 이미지 업로드
     U->>FE: 이미지 선택
@@ -189,7 +189,10 @@ sequenceDiagram
 
 ## 5. 데이터 모델 (ERD)
 
-SQLite에는 네이티브 JSON 타입이 없어 `ingredients`·`steps`는 JSON 문자열로 저장합니다.
+`ingredients`·`steps`는 JSON 문자열로 저장됩니다. 개발 초기 SQLite(네이티브 JSON 타입
+없음) 시절의 설계가 PostgreSQL 전환 후에도 남은 것으로, 알려진 기술 부채입니다 —
+자세한 배경과 트레이드오프는 [`adr/0005-recipe-arrays-as-json-string.md`](./adr/0005-recipe-arrays-as-json-string.md)
+참고. DB 자체는 PostgreSQL입니다([`adr/0002-postgresql-over-sqlite.md`](./adr/0002-postgresql-over-sqlite.md)).
 
 ```mermaid
 erDiagram
@@ -265,14 +268,18 @@ flowchart TD
             BE["Express<br/>node dist/index.js"]
             MIG["시작 시: prisma migrate deploy"]
         end
-        V1[("volume<br/>backend_data<br/>(dev.db)")]
+        subgraph CD["db 컨테이너"]
+            PG["postgres:16-alpine"]
+        end
+        V1[("volume<br/>pgdata")]
         V2[("volume<br/>backend_uploads")]
     end
 
     Browser -->|":3000"| FE
     Browser -->|":4000 · JSON/JWT"| BE
     FE -.->|"빌드 시 주입<br/>NEXT_PUBLIC_API_URL"| BE
-    BE --> V1
+    BE -->|"depends_on: service_healthy"| PG
+    PG --> V1
     BE --> V2
 ```
 
@@ -296,3 +303,5 @@ flowchart TD
 
 > 상세 실행법·API 표·S3 전환 가이드는 [`README.md`](../README.md), MVP 범위는 [`MVP-SPEC.md`](./MVP-SPEC.md),
 > C4 모델(Context/Container/Component/Code) 관점은 [`C4-ARCHITECTURE.md`](./C4-ARCHITECTURE.md) 참고.
+> "왜 이렇게 만들었는가"(대안·트레이드오프)는 [`adr/`](./adr/README.md)의 Architecture
+> Decision Record 참고.

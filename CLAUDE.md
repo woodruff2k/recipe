@@ -113,7 +113,8 @@ DB는 **PostgreSQL**(`schema.prisma` provider=postgresql). `Recipe.ingredients`/
 ## 설계 문서 (단일 출처)
 
 `docs/`에 설치/실행 가이드(`GETTING-STARTED.md`), MVP 명세(`MVP-SPEC.md`), 아키텍처
-(`ARCHITECTURE.md`), C4(`C4-ARCHITECTURE.md`), WBS(`WBS.md`), 리스크(`RISK-ANALYSIS.md`),
-모듈별 리팩토링 로드맵(`USERSERVICE-REFACTOR-ROADMAP.md`)이 있다. 우선순위·추정 시간·구현
-상태는 이 문서들이 서로 동기화되어 있으니, 범위/일정을 바꿀 때는 **MVP-SPEC와 WBS를 함께
-갱신**할 것.
+(`ARCHITECTURE.md`), C4(`C4-ARCHITECTURE.md`), 아키텍처 결정 기록(`adr/`), WBS(`WBS.md`),
+리스크(`RISK-ANALYSIS.md`), 모듈별 리팩토링 로드맵(`USERSERVICE-REFACTOR-ROADMAP.md`)이
+있다. 우선순위·추정 시간·구현 상태는 이 문서들이 서로 동기화되어 있으니, 범위/일정을
+바꿀 때는 **MVP-SPEC와 WBS를 함께 갱신**할 것. DB provider처럼 근본적인 변경을 할 때는
+`adr/`에도 새 ADR을 추가할 것(선례: `adr/0002-postgresql-over-sqlite.md`).
