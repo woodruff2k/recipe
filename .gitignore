@@ -32,3 +32,6 @@ starter-template/
 /e2e-results.json
 /metrics.json
 /public/
+
+# 문서 파이프라인(.github/workflows/docs-pipeline.yml)의 CI 중간 산출물
+/site/

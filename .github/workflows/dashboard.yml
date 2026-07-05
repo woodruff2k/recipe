@@ -93,3 +93,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
           publish_branch: gh-pages
+          # docs-pipeline.yml이 같은 브랜치의 /docs 하위경로에 배포하므로
+          # 이 워크플로가 그걸 지우지 않도록 유지한다.
+          keep_files: true

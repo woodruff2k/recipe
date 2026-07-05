@@ -1,0 +1,73 @@
+name: Docs Pipeline
+
+# TypeDoc/OpenAPI/가이드가 변경될 때만 실행 — 관련 없는 커밋에서는 도는 걸 피한다.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/src/**"
+      - "backend/openapi.yaml"
+      - "backend/typedoc.json"
+      - "docs/GETTING-STARTED.md"
+      - "docs-site/**"
+      - "scripts/render-markdown.mjs"
+      - ".github/workflows/docs-pipeline.yml"
+
+permissions:
+  contents: write
+
+env:
+  PNPM_VERSION: "9.15.9"
+  NODE_VERSION: "22"
+
+jobs:
+  build-and-deploy:
+    name: Build & deploy docs site
+    runs-on: ubuntu-latest
+    env:
+      # TypeDoc 빌드에 backend 코드가 로드되므로 부팅 시 fail-fast하는
+      # config/env.ts를 통과시키기 위한 값(실제 서버는 안 띄움).
+      JWT_SECRET: ci-docs-secret-not-for-prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./backend exec prisma generate
+
+      - name: Build TypeDoc (코드 레퍼런스)
+        run: pnpm --filter ./backend docs
+
+      - name: Build static OpenAPI docs (Redoc)
+        run: |
+          mkdir -p site/api
+          npx --yes @redocly/cli build-docs backend/openapi.yaml -o site/api/index.html
+
+      - name: Render Getting Started guide
+        run: |
+          node scripts/render-markdown.mjs \
+            docs/GETTING-STARTED.md \
+            site/getting-started.html \
+            "RecipeShare — Getting Started"
+
+      - name: Assemble docs site
+        run: |
+          cp -r backend/docs-api site/typedoc
+          cp docs-site/index.html site/index.html
+          BUILD_INFO="$(date -u +%Y-%m-%dT%H:%M:%SZ) (${GITHUB_SHA:0:7})"
+          sed -i "s/__BUILD_INFO__/${BUILD_INFO}/" site/index.html
+
+      - name: Deploy to GitHub Pages (/docs subpath)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          destination_dir: docs
+          # dashboard.yml이 배포한 루트(테스트 대시보드)를 지우지 않는다.
+          keep_files: true
